@@ -5,7 +5,7 @@
 }
 
 body {
-    background-image: url('espaco.jpg');
+    background-image: url('assets/espaco.jpg');
     background-repeat: no-repeat;
     background-position: center;
     display: flex;

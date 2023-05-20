@@ -19,7 +19,7 @@ function jogo() {
     var y = 0;
     var wMeteoro = new Image();
     var velMeteoro = 0.5;
-    wMeteoro.src = 'meteoro2.png';
+    wMeteoro.src = 'assets/meteoro2.png';
 
     //Largura e altura das imagens são iguais
     var width = 50;
@@ -27,7 +27,7 @@ function jogo() {
 
     //Aviao
     var wAviao = new Image();
-    wAviao.src = 'aviao.png'
+    wAviao.src = 'assets/aviao.png'
     var xAviao = 150;
     var yAviao = 300;
     var angle = 0;
@@ -141,7 +141,7 @@ function jogo() {
     }
 
     function desenharAviao(pX, pY, pW, pH) {
-        wAviao.src = 'aviao.png';
+        wAviao.src = 'assets/aviao.png';
         ctx.save();
         ctx.translate(pX + pW / 2, pY + pH / 2);
         ctx.rotate(angle); // Aplica a rotação no eixo y
