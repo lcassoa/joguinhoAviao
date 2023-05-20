@@ -1,46 +1,105 @@
-var canvas = document.getElementById("gameCanvas")
+function jogo() {
+    var body = document.getElementById("body");
+    var canvas = document.getElementById("gameCanvas")
     var ctx = canvas.getContext('2d')
-    var x = Math.random() * (canvas.width - 200);
+
+    var tInicial = new Date().getTime();
+    var intervalo, tAtual;
+    var pontos = 0; // Variável para contar os pontos
+    var gameOver = false;
+
+    //Meteoro
+    var x = Math.random() * (canvas.width - 25);
     var y = 0;
+    var wMeteoro = new Image();
+    var velMeteoro = 0.5;
+    wMeteoro.src = 'meteoro2.png';
+
+    //Largura e altura das imagens são iguais
     var width = 50;
     var height = 50;
+
+    //Aviao
+    var wAviao = new Image();
+    wAviao.src = 'aviao.png'
     var xAviao = 150;
     var yAviao = 300;
-    var wMeteoro = new Image();
-    wMeteoro.src = 'meteoro.png';
-    var wAviao = new Image();
-    wAviao.src = 'aviao'
+    var rotate = 0;
+
+    var btnIniciar = document.getElementById('btnIniciar');
+    btnIniciar.addEventListener('click', function () {
+        iniciarJogo();
+    });
 
     requestAnimationFrame(gameloop);
     function gameloop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (y <= 400) {
-            if (wMeteoro.complete) {
-                ctx.drawImage(wMeteoro, x, y, width, height);
+        if (!gameOver) {
+            if (y <= 400) {
+                if (wMeteoro.complete) {
+                    ctx.drawImage(wMeteoro, x, y, width, height);
+                }
+            } else {
+                // Gerar novo meteoro no topo da tela
+                x = Math.random() * canvas.width;
+                y = 0
+                pontos++; // Incrementar os pontos quando um meteoro passa pelo avião
+
+                if (pontos % 2 == 0) {
+                    velMeteoro += 0.1;
+                }
             }
+            y += velMeteoro; // Incrementar a variável y indicando o deslocamento para baixo
+
+            moverAviao(); // Atualiza a posição do avião
+            // Desenha o avião
+            desenharAviao(xAviao, yAviao, width, height);
+            // Chama novamente o ciclo da animação
+            detectarColisao();
+
+            // Atualiza os pontos na tela
+            ctx.fillStyle = 'white';
+            ctx.font = '24px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('Pontos: ' + pontos, 10, 30);
+            ctx.fillText('VEL METEORO: ' + velMeteoro, 10, 50);
+            ctx.fillText('x METEORO: ' + x, 10, 70);
+            ctx.fillText('y METEORO: ' + y, 10, 90);
+            ctx.fillText('x AVIAO: ' + xAviao, 10, 110);
+            ctx.fillText('y AVIAO: ' + yAviao, 10, 130);
+
+            requestAnimationFrame(gameloop);
         } else {
-            // gerar novo meteoro no topo da tela
-            x = Math.random() * (canvas.width - 200);
-            y = 0;
+            ctx.font = "40px Helvetica";
+            ctx.fillStyle = 'red';
+            ctx.fillText('WASTED', canvas.width / 2 - 150, canvas.height / 2)
         }
-        y += 5; //incrementar a variável y indicando o deslocamento para baixo
-        moverAviao(); //atualiza a posição do avião
-        //desenha o avião na nova posição
-        desenharAviao(xAviao, yAviao, width, height);
-        //chama novamente o ciclo da animação
- 
-        requestAnimationFrame(gameloop);
-        detectarColisao();
     }
 
+    function iniciarJogo() {
+        pontos = 0; // Reinicia os pontos
+        tInicial = new Date().getTime(); // Inicia o tempo inicial
+        gameOver = false; // Reseta o estado do jogo
+        gameloop(); // Inicia o loop do jogo
+    }
     window.onkeydown = pressionaTecla;
 
     function pressionaTecla(tecla) {
-        if (tecla.keyCode == 39) {
-            xAviao += 10; //aumentar o x tem o efeito de ir para a direita
+        if (tecla.keyCode == 38) { // CIMA
+            yAviao -= 10;
+            rotate = 0;
         }
-        if (tecla.keyCode == 37) {
-            xAviao -= 10; //diminuir o x tem o efeito de ir para a esquerda
+        if (tecla.keyCode == 40) { // BAIXO
+            yAviao += 10;
+            rotate = 90;
+        }
+        if (tecla.keyCode == 39) { // DIREITA
+            xAviao += 10;
+            rotate = 45;
+        }
+        if (tecla.keyCode == 37) { // ESQUERDA
+            xAviao -= 10;
+            rotate = 180;
         }
     }
 
@@ -50,24 +109,39 @@ var canvas = document.getElementById("gameCanvas")
         if (xAviao < 0) {
             xAviao = 0;
         }
-        if (xAviao > canvas.width - 100) {
-            xAviao = canvas.width - 100;
+        if (xAviao + 50 >= canvas.width) {
+            xAviao = canvas.width - 50;
+        }
+        if (yAviao < 0) {
+            yAviao = 0;
+        }
+        if (yAviao + 50 >= canvas.height) {
+            yAviao = canvas.height - 50;
         }
     }
 
     function desenharAviao(pX, pY, pW, pH) {
-        var wAviao = new Image();
-        wAviao.src = 'aviao.png'
-        ctx.drawImage(wAviao, pX, pY, pW, pH);
+        wAviao.src = 'aviao.png';
+        ctx.save();
+        ctx.translate(pX + pW / 2, pY + pH / 2);
+        ctx.rotate(rotate)
+        ctx.drawImage(wAviao, -pW / 2, -pH / 2, pW, pH);
+        ctx.restore();
     }
 
     function detectarColisao() {
-        if (((xAviao + width) > x && xAviao < (x +
-            width)) && ((yAviao + yAviao) > y
-                && width < (y + height)
-            )) {
-            //interrompe o game loop parando a movimentação do quadrado vermelho
-            window.clearInterval(id_interval);
-            alert("Game Over")
+        if (
+            xAviao + width > x &&
+            xAviao <= x + width &&
+            yAviao + height > y &&
+            yAviao < y + height
+        ) {
+            gameOver = true;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.font = "40px Helvetica";
+            ctx.fillStyle = 'yellow';
+            ctx.fillText('WASTED', canvas.width / 2 - 100, canvas.height / 2);
         }
     }
+}
