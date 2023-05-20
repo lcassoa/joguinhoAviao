@@ -1,12 +1,18 @@
 function jogo() {
-    var body = document.getElementById("body");
     var canvas = document.getElementById("gameCanvas")
     var ctx = canvas.getContext('2d')
 
+    var btnIniciar = document.getElementById('btnIniciar');
+    btnIniciar.addEventListener('click', function () {
+        if (gameOver) {
+            iniciarJogo();
+        }
+    });
+
     var tInicial = new Date().getTime();
-    var intervalo, tAtual;
     var pontos = 0; // Variável para contar os pontos
     var gameOver = false;
+    var timer = 0;
 
     //Meteoro
     var x = Math.random() * (canvas.width - 25);
@@ -24,12 +30,8 @@ function jogo() {
     wAviao.src = 'aviao.png'
     var xAviao = 150;
     var yAviao = 300;
-    var rotate = 0;
-
-    var btnIniciar = document.getElementById('btnIniciar');
-    btnIniciar.addEventListener('click', function () {
-        iniciarJogo();
-    });
+    var angle = 0;
+    var angleX = 0;
 
     requestAnimationFrame(gameloop);
     function gameloop() {
@@ -57,22 +59,27 @@ function jogo() {
             // Chama novamente o ciclo da animação
             detectarColisao();
 
+            if (timer >= 10) {
+                if (pontos <= 10) {
+                    pontos = 0
+                } else {
+                    pontos -= 10
+                }
+                timer = 0
+            }
+
             // Atualiza os pontos na tela
             ctx.fillStyle = 'white';
             ctx.font = '24px sans-serif';
             ctx.textAlign = 'left';
             ctx.fillText('Pontos: ' + pontos, 10, 30);
-            ctx.fillText('VEL METEORO: ' + velMeteoro, 10, 50);
-            ctx.fillText('x METEORO: ' + x, 10, 70);
-            ctx.fillText('y METEORO: ' + y, 10, 90);
-            ctx.fillText('x AVIAO: ' + xAviao, 10, 110);
-            ctx.fillText('y AVIAO: ' + yAviao, 10, 130);
-
+            ctx.fillText('Timer: ' + timer, 10, 50);
             requestAnimationFrame(gameloop);
         } else {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.font = "40px Helvetica";
             ctx.fillStyle = 'red';
-            ctx.fillText('WASTED', canvas.width / 2 - 150, canvas.height / 2)
+            ctx.fillText('Game Over', canvas.width / 2 - 100, canvas.height / 2);
         }
     }
 
@@ -80,26 +87,39 @@ function jogo() {
         pontos = 0; // Reinicia os pontos
         tInicial = new Date().getTime(); // Inicia o tempo inicial
         gameOver = false; // Reseta o estado do jogo
+        timer = 0
         gameloop(); // Inicia o loop do jogo
     }
     window.onkeydown = pressionaTecla;
 
+    setInterval(function () {
+        timer++
+    }, 1000);
+
     function pressionaTecla(tecla) {
-        if (tecla.keyCode == 38) { // CIMA
+        if (tecla.keyCode == 38 || tecla.keyCode == 87) { // CIMA ou W
             yAviao -= 10;
-            rotate = 0;
+            angle = -Math.PI / 2;
+            angleX = Math.PI / 2;
+            timer = 0
         }
-        if (tecla.keyCode == 40) { // BAIXO
+        if (tecla.keyCode == 40 || tecla.keyCode == 83) { // BAIXO ou S
             yAviao += 10;
-            rotate = 90;
+            angle = Math.PI / 2;
+            angleX = Math.PI / 2;
+            timer = 0
         }
-        if (tecla.keyCode == 39) { // DIREITA
+        if (tecla.keyCode == 39 || tecla.keyCode == 68) { // DIREITA ou D
             xAviao += 10;
-            rotate = 45;
+            angle = 0;
+            angleX = Math.PI / 2;
+            timer = 0
         }
-        if (tecla.keyCode == 37) { // ESQUERDA
+        if (tecla.keyCode == 37 || tecla.keyCode == 65) { // ESQUERDA ou A
             xAviao -= 10;
-            rotate = 180;
+            angle = 0;
+            angleX = -Math.PI / 2;
+            timer = 0
         }
     }
 
@@ -124,7 +144,8 @@ function jogo() {
         wAviao.src = 'aviao.png';
         ctx.save();
         ctx.translate(pX + pW / 2, pY + pH / 2);
-        ctx.rotate(rotate)
+        ctx.rotate(angle); // Aplica a rotação no eixo y
+        ctx.rotate(angleX); // Aplica a rotação no eixo X
         ctx.drawImage(wAviao, -pW / 2, -pH / 2, pW, pH);
         ctx.restore();
     }
@@ -140,8 +161,8 @@ function jogo() {
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.font = "40px Helvetica";
-            ctx.fillStyle = 'yellow';
-            ctx.fillText('WASTED', canvas.width / 2 - 100, canvas.height / 2);
+            ctx.fillStyle = 'red';
+            ctx.fillText('Game Over', canvas.width / 2 - 100, canvas.height / 2);
         }
     }
 }
